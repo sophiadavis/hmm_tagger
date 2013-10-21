@@ -42,6 +42,17 @@ def hmm_viterbi(sequence, hmm_model):
     v_zeros = initialization(sequence, hmm_model)
     viterbi_body = recursion_step(v_zeros, sequence, hmm_model, 1) # , []
     viterbi_final = termination(viterbi_body, sequence, hmm_model)
+    time_step = len(sequence) - 1
+    path = []
+    while time_step != 0:
+        current_max = 0
+        for tag in viterbi_final[time_step]:
+            if viterbi_final[time_step][tag][0] > current_max:
+                current_max = viterbi_final[time_step][tag][0]
+                new_best_tag = viterbi_final[time_step][tag][1] 
+        path.append(new_best_tag)
+        time_step -= 1
+    print path
     
     
 def initialization(sequence, hmm_model):
@@ -103,8 +114,8 @@ def recursion_step(viterbi, sequence, hmm_model, time_step): # , path
             if viterbi[time_step][key][0] > new_max:
                 new_max = viterbi[time_step][key][0]
                 new_best = viterbi[time_step][key][1] 
-        print new_max
-        print new_best
+#         print new_max
+#         print new_best
      
 #         path.append(new_best)
         time_step += 1
@@ -123,7 +134,7 @@ def termination(viterbi, sequence, hmm_model):
             a = transition_probs[tag_previous]['q_final']
         else:
             a = transition_probs[tag_previous]['other']
-        v_previous = viterbi[time_step - 1][tag_previous][0]
+        v_previous = viterbi[final_time_step - 1][tag_previous][0]
         v_current = v_previous * a
         if v_current > max:
             max = v_current
