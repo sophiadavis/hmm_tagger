@@ -15,5 +15,25 @@
 # Like the last assignment, you will need to deal with unknown words and their probabilities. 
 # Begin with a simple estimator, using a single <UNK> token to handle this.
 # 
-# If you have time, check out the book’s suggestions for this in section 5.8.2. The general 
-# idea is that if a word ends in -ed, it is very likely to be a VBD. If it ends in -s, it is likely to be NNS, and so on.
+# If you have time, check out the books suggestions for this in section 5.8.2.
+import pickle
+import sys
+
+def main():
+    # 
+    model = pickle.load( open('model.dat', 'r') ) # model = [transition_probs, emission_probs, tag_list, vocabulary]
+    transition_probs = model[0]
+    emission_probs = model[1]
+    tag_list = model[2]
+    vocabulary = model[3]
+    
+    word_sequence = ''
+    for line in sys.stdin:
+        for word in line:
+            word_sequence = word_sequence + word
+    
+            
+    
+
+if __name__ == "__main__":
+    main()
