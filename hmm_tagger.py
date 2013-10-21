@@ -12,6 +12,10 @@
 # output tag sequence with corresponding words
 
 
+
+# am I doing the first part correctly?
+
+
 # Like the last assignment, you will need to deal with unknown words and their probabilities. 
 # Begin with a simple estimator, using a single <UNK> token to handle this.
 # 
@@ -39,13 +43,13 @@ def hmm_viterbi(sequence, hmm_model):
     viterbi_body = recursion_step(v_zeros, sequence, hmm_model, 1) # , []
     viterbi_final = termination(viterbi_body, sequence, hmm_model)
     
+    
 def initialization(sequence, hmm_model):
     
     transition_probs = hmm_model[0]
     emission_probs = hmm_model[1]
     tag_list = hmm_model[2]
     
-    N = len(tag_list)
     viterbi = {0 : {} }
     word = sequence[0] 
     for tag in tag_list:
@@ -82,7 +86,7 @@ def recursion_step(viterbi, sequence, hmm_model, time_step): # , path
                 else:
                     a = transition_probs[tag_previous]['other']
                 b = emission_probs[tag][word]
-                v_current = v_previous*a*b
+                v_current = v_previous * a * b
 #                 print 'current probabilities are: '
 #                 print a, b, v_previous
 #                 print
@@ -112,16 +116,19 @@ def termination(viterbi, sequence, hmm_model):
     emission_probs = hmm_model[1]
     tag_list = hmm_model[2]
     
-    viterbi = {0 : {} }
-    word = sequence[0] 
-    for tag in tag_list:
-#         print 'Nth tag is: ' + tag
-        if tag in transition_probs['q_zero']:
-            a = transition_probs['q_zero'][tag]
+    final_time_step = len(sequence) - 1
+    for tag_previous in tag_list:
+        max = 0
+        if 'q_final' in transition_probs[tag_previous]:
+            a = transition_probs[tag_previous]['q_final']
         else:
-            a = transition_probs['q_zero']['other']
-        b = emission_probs[tag][word]
-        viterbi[0][tag] = [a*b]
+            a = transition_probs[tag_previous]['other']
+        v_previous = viterbi[time_step - 1][tag_previous][0]
+        v_current = v_previous * a
+        if v_current > max:
+            max = v_current
+            best_previous_tag = tag_previous
+    viterbi[final_time_step]['q_final'] = [max, best_previous_tag]
 #         print 'current probabilities: '
 #         print a, b
 #         print viterbi[0][tag]
