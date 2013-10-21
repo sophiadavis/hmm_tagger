@@ -3,6 +3,8 @@ import re
 import pickle
 from sets import Set
 # create test set
+# update the unknown thing
+# ==== is broken
 
 def main():
     corpus = ''
@@ -26,6 +28,7 @@ def main():
     transition_counts = get_transition_counts(total_tag_list)
     transition_probs = get_transition_probs(transition_counts)
     tag_list = transition_counts.keys()
+    tag_list = [tag for tag in tag_list if tag not in ['q_zero', 'q_final']]
 
     # get emission probabilities
     tagged_observations = observations[1]
@@ -71,7 +74,7 @@ def get_transition_counts(list):
             else:
                 tag_one_dict[tag_two] = 1.0
         else:
-            transition_counts[tag_one] = {tag_two : 1.0}
+            transition_counts[tag_one] = {'other' : 0.000001, tag_two : 1.0}
     return transition_counts
 
 def get_transition_probs(dict_of_dicts):
@@ -99,7 +102,7 @@ def get_emission_counts(tagged_words_list):
             else:
                 tag_dict[word] = 1.0
         else:
-            emission_counts[tag] = {word : 1.0}
+            emission_counts[tag] = {'<unknown>' : 0.000001, word : 1.0}
     return emission_counts
 
 def get_emission_probs(dict_of_dicts):
