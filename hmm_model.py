@@ -61,12 +61,12 @@ def get_tagged_list(text):
     total_tag_list.append('q_final') # add last final tag to list
     return total_tag_list, tagged_tokens_list, vocabulary
 
-def get_transition_counts(list):    
+def get_transition_counts(tag_list):    
     transition_counts = {}
-    for i in range(0, len(list) - 1):
+    for i in range(0, len(tag_list) - 1):
         # storing bigram tag counts based on first tag in sequence
-        tag_one = list[i]
-        tag_two = list[i + 1]
+        tag_one = tag_list[i]
+        tag_two = tag_list[i + 1]
         if tag_one in transition_counts:
             tag_one_dict = transition_counts[tag_one]
             if tag_two in tag_one_dict:
