@@ -281,3 +281,68 @@ Harvard/NNP University/NNP
 and/CC 
 Boston/NNP University/NNP
 ./. 
+
+======================================
+
+Mr./NNP Bernstein/NNP
+,/, 
+who/WP
+succeeded/VBD 
+Bennett/NNP Cerf/NNP
+,/, has/VBZ been/VBN only/RB 
+the/DT second/JJ president/NN
+of/IN 
+Random/NNP House/NNP
+since/IN 
+it/PRP
+was/VBD founded/VBN in/IN 
+1925/CD
+./. 
+
+Speculation/NN
+on/IN 
+his/PRP$ successor/NN centers/VBZ
+on/IN 
+a/DT number/NN
+of/IN 
+division/NN heads/NNS
+at/IN 
+the/DT house/NN
+./. 
+
+Possible/JJ candidates/NNS
+include/VBP 
+Susan/NNP Petersen/NNP
+,/, 
+president/NN
+of/IN 
+Ballantine\/Del/NNP Rey\/Fawcett/NNP
+,/, 
+Random/NNP House/NNP 's/POS huge/JJ
+and/CC 
+successful/JJ paperback/NN division/NN
+./. 
+
+Some/DT
+say/VBP 
+Anthony/NNP Cheetham/NNP
+,/, 
+head/NN
+of/IN 
+a/DT
+recently/RB acquired/VBN 
+British/JJ company/NN
+,/, 
+Century/NNP Hutchinson/NNP
+,/, could/MD be/VB chosen/VBN ./. 
+
+======================================
+
+Martin/NNP Marietta/NNP Corp./NNP
+was/VBD given/VBN 
+a/DT $/$ 29.9/CD million/CD Air/NNP Force/NNP contract/NN
+for/IN 
+low-altitude/NN navigation/NN
+and/CC 
+targeting/VBG|NN equipment/NN
+./. 

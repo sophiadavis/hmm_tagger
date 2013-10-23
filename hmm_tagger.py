@@ -28,13 +28,14 @@ import re
 
 def main():
     # 
-    model = pickle.load( open('model.dat', 'r') ) # model = [transition_probs, emission_probs, tag_list, vocabulary]
+    model = pickle.load( open('model_newest.dat', 'r') ) # model = [transition_probs, emission_probs, tag_list, vocabulary]
     vocabulary = model[3]
     cleaned_input = []
     word_sequence = []
     for line in sys.stdin:
         words = line.split(' ')
         for word in words:
+            word = re.sub(r"\\\/", r"", word) # for words separated with white space
             word = re.sub(r"([.,!?:;()@#$%^&*{}|\/<>~`'])", r" \g<1>", word) # separate punctuation from words
             tokens = word.split(' ')
             for token in tokens:
@@ -52,7 +53,7 @@ def hmm_viterbi(sequence, hmm_model):
     final_step = termination(viterbi_matrix, sequence, hmm_model)
     viterbi_matrix_final = final_step[0]
     argmax = final_step[1][1]
-    print 'final argmax: ' + argmax
+#     print 'final argmax: ' + argmax
     time_step = len(sequence) - 1
     path = []
     while time_step != 0:
@@ -69,6 +70,9 @@ def initialization(sequence, hmm_model):
     transition_probs = hmm_model[0]
     emission_probs = hmm_model[1]
     tag_list = hmm_model[2]
+    print transition_probs
+    print emission_probs
+    print tag_list
     
     # storing each timestep as a separate entry in a dictionary
     # each timestep consists of another dictionary of  { tag : [max, argmax] }
@@ -124,7 +128,7 @@ def termination(viterbi, sequence, hmm_model):
     emission_probs = hmm_model[1]
     tag_list = hmm_model[2]
     
-    final_time_step = len(sequence) # NOT len(sequence) - 1 I think
+    final_time_step = len(sequence)
     viterbi[final_time_step] = {}
     
     for tag_previous in tag_list:

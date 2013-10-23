@@ -5,9 +5,12 @@ from sets import Set
 # create test set
 # update the unknown thing
 # ==== is broken
+# SMOOTH
 
 def main():
     corpus = ''
+    
+    print "Initializing corpus..."
     if len(sys.argv) < 2:
         sys.stderr.write('Usage: python ' + sys.argv[0] + ' filename.pos\n')
         sys.exit(1)
@@ -36,8 +39,8 @@ def main():
     emission_probs = get_emission_probs(emission_counts)
     
     to_pickle = [transition_probs, emission_probs, tag_list, vocabulary]
-    pickle.dump(to_pickle, open('model.dat', 'w'))
-    print "Saving to model.dat"
+    pickle.dump(to_pickle, open('model_newest.dat', 'w'))
+    print "Saving to model_newest.dat"
 
 def get_tagged_list(text):
     total_tag_list = []
@@ -49,9 +52,12 @@ def get_tagged_list(text):
             token = 'q_zero/q_zero'
         if token == '':
             continue
+        token = re.sub(r"\\\/", r"", token) # tokens that include whitespace are separated by \/ -- strip it
+        token = re.sub(r"(.*)(\|)(.*)", r"\g<1>", token) # multiple tags are separated by '|' -- take the first tag
         tagged_token = token.split('/')
-        word = tagged_token[0] 
+        word = tagged_token[0]
         tag = tagged_token[1]
+        
         # unfortunately, not every phrase is separated by ==== but I'm scrunching this class so I'm letting that slide
         if tag == 'q_zero' and len(total_tag_list) > 0: # don't add q_final to the beginning of the list
             total_tag_list.append('q_final')
@@ -74,7 +80,7 @@ def get_transition_counts(tag_list):
             else:
                 tag_one_dict[tag_two] = 1.0
         else:
-            transition_counts[tag_one] = {'other' : 0.000001, tag_two : 1.0}
+            transition_counts[tag_one] = {'other' : 1.0, tag_two : 1.0} 
     return transition_counts
 
 def get_transition_probs(dict_of_dicts):
@@ -102,7 +108,7 @@ def get_emission_counts(tagged_words_list):
             else:
                 tag_dict[word] = 1.0
         else:
-            emission_counts[tag] = {'<unknown>' : 0.000001, word : 1.0}
+            emission_counts[tag] = {'<unknown>' : 1.0, word : 1.0}
     return emission_counts
 
 def get_emission_probs(dict_of_dicts):
