@@ -39,8 +39,8 @@ def main():
     emission_probs = get_emission_probs(emission_counts)
     
     to_pickle = [transition_probs, emission_probs, tag_list, vocabulary]
-    pickle.dump(to_pickle, open('model_newest.dat', 'w'))
-    print "Saving to model_newest.dat"
+    pickle.dump(to_pickle, open('model.dat', 'w'))
+    print "Saving to model.dat"
 
 def get_tagged_list(text):
     total_tag_list = []
@@ -80,7 +80,7 @@ def get_transition_counts(tag_list):
             else:
                 tag_one_dict[tag_two] = 1.0
         else:
-            transition_counts[tag_one] = {'other' : 1.0, tag_two : 1.0} 
+            transition_counts[tag_one] = {'other' : 0.0, tag_two : 1.0} 
     return transition_counts
 
 def get_transition_probs(dict_of_dicts):
@@ -93,6 +93,9 @@ def get_transition_probs(dict_of_dicts):
             total_count += tag_one_dict[tag_two]
         for tag_two in tag_one_dict.keys():
             transition_probs[tag_one][tag_two] = tag_one_dict[tag_two]/total_count
+        values = filter(lambda x: x != 0.0, transition_probs[tag_one].values())
+        minimum = min(values)
+        transition_probs[tag_one]['other'] = minimum/100
     return transition_probs
 
 def get_emission_counts(tagged_words_list):
@@ -108,7 +111,7 @@ def get_emission_counts(tagged_words_list):
             else:
                 tag_dict[word] = 1.0
         else:
-            emission_counts[tag] = {'<unknown>' : 1.0, word : 1.0}
+            emission_counts[tag] = {'<unknown>' : 0.0, word : 1.0}
     return emission_counts
 
 def get_emission_probs(dict_of_dicts):
@@ -121,6 +124,9 @@ def get_emission_probs(dict_of_dicts):
             total_count += tag_dict[word]
         for word in tag_dict.keys():
             emission_probs[tag][word] = tag_dict[word]/total_count
+        values = filter(lambda x: x != 0.0, emission_probs[tag].values())
+        minimum = min(values)
+        emission_probs[tag]['<unknown>'] = minimum/100
     return emission_probs
 
 if __name__ == "__main__":

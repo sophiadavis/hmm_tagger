@@ -28,7 +28,7 @@ import re
 
 def main():
     # 
-    model = pickle.load( open('model_newest.dat', 'r') ) # model = [transition_probs, emission_probs, tag_list, vocabulary]
+    model = pickle.load( open('model.dat', 'r') ) # model = [transition_probs, emission_probs, tag_list, vocabulary]
     vocabulary = model[3]
     cleaned_input = []
     word_sequence = []
@@ -39,13 +39,21 @@ def main():
             word = re.sub(r"([.,!?:;()@#$%^&*{}|\/<>~`'])", r" \g<1>", word) # separate punctuation from words
             tokens = word.split(' ')
             for token in tokens:
-                cleaned_input.append(token)
-        for word in cleaned_input:    
+                token = re.sub(r"\n", r"", token)
+                if token: # don't append empty string
+                    cleaned_input.append(token)  # strip whitespace from punctuation
+        for word in cleaned_input: 
             if word in vocabulary:
                 word_sequence.append(word)
             else:
                 word_sequence.append('<unknown>')
-    hmm_viterbi(word_sequence, model)
+    path = hmm_viterbi(word_sequence, model)
+    path.reverse()
+    output = ''
+    for i in range(0, len(cleaned_input)):
+        tagged_word = cleaned_input[i] + '/' + path[i] + ' '
+        output = output + tagged_word
+    print output
 
 def hmm_viterbi(sequence, hmm_model):
     v_zeros = initialization(sequence, hmm_model)
@@ -53,26 +61,21 @@ def hmm_viterbi(sequence, hmm_model):
     final_step = termination(viterbi_matrix, sequence, hmm_model)
     viterbi_matrix_final = final_step[0]
     argmax = final_step[1][1]
-#     print 'final argmax: ' + argmax
     time_step = len(sequence) - 1
-    path = []
+    path = [argmax]
     while time_step != 0:
-        print viterbi_matrix_final[time_step][argmax]
         current_argmax = viterbi_matrix_final[time_step][argmax][1]
         path.append(current_argmax)
         argmax = viterbi_matrix_final[time_step][argmax][1]
         time_step -= 1
-    print path
-    
+    output = ''
+    return path
     
 def initialization(sequence, hmm_model):
     
     transition_probs = hmm_model[0]
     emission_probs = hmm_model[1]
     tag_list = hmm_model[2]
-    print transition_probs
-    print emission_probs
-    print tag_list
     
     # storing each timestep as a separate entry in a dictionary
     # each timestep consists of another dictionary of  { tag : [max, argmax] }
@@ -86,7 +89,7 @@ def initialization(sequence, hmm_model):
         if word in emission_probs[tag]:
             b = emission_probs[tag][word]
         else:
-            b = emission_probs[tag]['<unknown>'] 
+            b = 0
         viterbi[0][tag] = [a*b]
     return viterbi
 
@@ -104,7 +107,8 @@ def recursion_step(viterbi, sequence, hmm_model):
         
         for tag in tag_list:
             max = 0
-            for tag_previous in viterbi[time_step - 1]:
+            argmax = None
+            for tag_previous in tag_list:
                 v_previous = viterbi[time_step - 1][tag_previous][0]
                 if tag in transition_probs[tag_previous]:
                     a = transition_probs[tag_previous][tag]
@@ -113,12 +117,15 @@ def recursion_step(viterbi, sequence, hmm_model):
                 if word in emission_probs[tag]:
                     b = emission_probs[tag][word]
                 else:
-                    b = emission_probs[tag]['<unknown>'] 
+                    b = 0
                 v_current = v_previous * a * b
                 if v_current > max:
                     max = v_current
                     argmax = tag_previous
-            viterbi[time_step][tag] = [max, argmax]
+            if argmax:        
+                viterbi[time_step][tag] = [max, argmax]
+            else:
+                viterbi[time_step][tag] = [0, 'Oops']
         time_step += 1
     return viterbi
 
