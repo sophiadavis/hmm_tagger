@@ -1,11 +1,13 @@
+# hmm_model.py, Sophia Davis, for 10/25/2013
+# This program reads in a list of files containing a POS-tagged corpus from from the command line,
+# calculates transition and emission probabilities, and generates a vocabulary and list of 
+# tags. This hmm model is then 'pickled,' and can then be used by the hmm_tagger.py program  
+# to tag new text.
+
 import sys
 import re
 import pickle
 from sets import Set
-# create test set
-# update the unknown thing
-# ==== is broken
-# SMOOTH
 
 def main():
     corpus = ''
@@ -19,9 +21,10 @@ def main():
         for line in f:
             corpus = corpus + line + " "
         f.close()
-    
     print "Calculating HMM probabilities...."
     corpus = corpus.split(' ')
+    
+    # split corpus into each token/tag unit
     observations = get_tagged_list(corpus)
     
     total_tag_list = observations[0]
@@ -42,6 +45,8 @@ def main():
     pickle.dump(to_pickle, open('model.dat', 'w'))
     print "Saving to model.dat"
 
+# splits a tagged corpus into units of word/tag
+# returns a list of all tags in corpus, all words in corpus (vocabulary), and a list of word/tag units
 def get_tagged_list(text):
     total_tag_list = []
     tagged_tokens_list = []
@@ -52,13 +57,13 @@ def get_tagged_list(text):
             token = 'q_zero/q_zero'
         if token == '':
             continue
-        token = re.sub(r"\\\/", r"", token) # tokens that include whitespace are separated by \/ -- strip it
-        token = re.sub(r"(.*)(\|)(.*)", r"\g<1>", token) # multiple tags are separated by '|' -- take the first tag
+        token = re.sub(r"\\\/", r"", token) # remove \/ from words containing white space
+        token = re.sub(r"(.*)(\|)(.*)", r"\g<1>", token) # if words have been tagged 
+                                                    # with multiple tags, take the first
         tagged_token = token.split('/')
         word = tagged_token[0]
         tag = tagged_token[1]
         
-        # unfortunately, not every phrase is separated by ==== but I'm scrunching this class so I'm letting that slide
         if tag == 'q_zero' and len(total_tag_list) > 0: # don't add q_final to the beginning of the list
             total_tag_list.append('q_final')
         total_tag_list.append(tag)
@@ -67,10 +72,12 @@ def get_tagged_list(text):
     total_tag_list.append('q_final') # add last final tag to list
     return total_tag_list, tagged_tokens_list, vocabulary
 
+# takes a list of all tags in corpus, produces dictionary of transition counts
+# each key is the first tag in the bigram sequence
+# its values are a dictionary of {ending tag : count}
 def get_transition_counts(tag_list):    
     transition_counts = {}
     for i in range(0, len(tag_list) - 1):
-        # storing bigram tag counts based on first tag in sequence
         tag_one = tag_list[i]
         tag_two = tag_list[i + 1]
         if tag_one in transition_counts:
@@ -83,6 +90,8 @@ def get_transition_counts(tag_list):
             transition_counts[tag_one] = {'other' : 0.0, tag_two : 1.0} 
     return transition_counts
 
+# takes dictionary of tag transition counts and converts these to 
+# a dictionary of tag transition probabilities
 def get_transition_probs(dict_of_dicts):
     transition_probs = {}
     for tag_one in dict_of_dicts.keys():
@@ -95,13 +104,17 @@ def get_transition_probs(dict_of_dicts):
             transition_probs[tag_one][tag_two] = tag_one_dict[tag_two]/total_count
         values = filter(lambda x: x != 0.0, transition_probs[tag_one].values())
         minimum = min(values)
-        transition_probs[tag_one]['other'] = minimum/100
+        transition_probs[tag_one]['other'] = minimum/100 # this pseudo-smoothing method
+                                # means "probabilities" will not sum to one, but seems to
+                                # be fairly effective
     return transition_probs
 
+# takes a list of all units of word/tag in corpus, produces dictionary of emission counts
+# each key is a tag
+# its values are a dictionary of {word : count}
 def get_emission_counts(tagged_words_list):
     emission_counts = {}
     for tagged_word in tagged_words_list:
-        # storing counts based on tag
         tag = tagged_word[1]
         word = tagged_word[0]
         if tag in emission_counts:
@@ -114,6 +127,8 @@ def get_emission_counts(tagged_words_list):
             emission_counts[tag] = {'<unknown>' : 0.0, word : 1.0}
     return emission_counts
 
+# takes dictionary of tag transition counts and converts these to 
+# a dictionary of tag transition probabilities
 def get_emission_probs(dict_of_dicts):
     emission_probs = {}
     for tag in dict_of_dicts.keys():
@@ -126,7 +141,7 @@ def get_emission_probs(dict_of_dicts):
             emission_probs[tag][word] = tag_dict[word]/total_count
         values = filter(lambda x: x != 0.0, emission_probs[tag].values())
         minimum = min(values)
-        emission_probs[tag]['<unknown>'] = minimum/100
+        emission_probs[tag]['<unknown>'] = minimum/100  # again, pseudo-smoothing method
     return emission_probs
 
 if __name__ == "__main__":

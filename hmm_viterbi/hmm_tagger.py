@@ -1,33 +1,13 @@
-# Write an program named hmm_tagger.py or HmmTagger.java that acts as an HMM by using the 
-# Viterbi algorithm and the model file that you created to determine the most probable tag 
-# sequence given a sequence of words/tokens. The program should read the sequence of tokens 
-# from standard input, then load the model file, then use that to output a tag sequence, 
-# with the corresponding words. The word sequence input will be the .pos files piped 
-# through the following sed script:
+# hmm_tagger.py, Sophia Davis, for 10/25/2013
+# This program takes a sequence of words from standard input, and uses the hmm model created
+# in hmm_model.py and the Viterbi algorithm to determine the most probable sequence of POS
+# tags for the word sequence.
 
-
-# read from stdin
-# load model file
-# deal with unknown words
-# output tag sequence with corresponding words
-
-
-
-# am I doing the first part correctly?
-# somehow smooth counts
-
-
-# Like the last assignment, you will need to deal with unknown words and their probabilities. 
-# Begin with a simple estimator, using a single <UNK> token to handle this.
-# 
-# If you have time, check out the books suggestions for this in section 5.8.2.
 import pickle
 import sys
 import re
 
-
 def main():
-    # 
     model = pickle.load( open('model.dat', 'r') ) # model = [transition_probs, emission_probs, tag_list, vocabulary]
     vocabulary = model[3]
     cleaned_input = []
@@ -40,8 +20,8 @@ def main():
             tokens = word.split(' ')
             for token in tokens:
                 token = re.sub(r"\n", r"", token)
-                if token: # don't append empty string
-                    cleaned_input.append(token)  # strip whitespace from punctuation
+                if token:
+                    cleaned_input.append(token)  # strip whitespace (from punctuation)
         for word in cleaned_input: 
             if word in vocabulary:
                 word_sequence.append(word)
@@ -55,6 +35,9 @@ def main():
         output = output + tagged_word
     print output
 
+# takes an hmm model and word sequence
+# 'guides' sequence of words through steps of Viterbi algorithm
+# Viterbi probabilities are stored in a dictionary of { time step : { tag : [max, argmax] } }
 def hmm_viterbi(sequence, hmm_model):
     v_zeros = initialization(sequence, hmm_model)
     viterbi_matrix = recursion_step(v_zeros, sequence, hmm_model)
@@ -70,15 +53,16 @@ def hmm_viterbi(sequence, hmm_model):
         time_step -= 1
     output = ''
     return path
-    
+
+# initialization step of the Viterbi algorithm
+# takes a sequence of words and an hmm model and calculates probabilities of each possible tag
+# starting the given sequence
+# returns a dictionary of { time_step_0 : { tag : [max, argmax] } }
 def initialization(sequence, hmm_model):
-    
     transition_probs = hmm_model[0]
     emission_probs = hmm_model[1]
     tag_list = hmm_model[2]
     
-    # storing each timestep as a separate entry in a dictionary
-    # each timestep consists of another dictionary of  { tag : [max, argmax] }
     viterbi = {0 : {} }
     word = sequence[0] 
     for tag in tag_list:
@@ -93,14 +77,17 @@ def initialization(sequence, hmm_model):
         viterbi[0][tag] = [a*b]
     return viterbi
 
+# recursion step of the Viterbi algorithm
+# takes a sequence of words and an hmm model and calculates Viterbi probabilities for all tags
+# at each time step, by keeping track of maximum probabilities from all tags at each 
+# previous time step and the argmax that produced them
+# returns a dictionary of { time_step : { tag : [max, argmax] } }
 def recursion_step(viterbi, sequence, hmm_model):
-    
     transition_probs = hmm_model[0]
     emission_probs = hmm_model[1]
     tag_list = hmm_model[2]
     
     time_step = 1
-    
     while time_step < len(sequence):
         viterbi[time_step] = {}
         word = sequence[time_step]
@@ -125,12 +112,15 @@ def recursion_step(viterbi, sequence, hmm_model):
             if argmax:        
                 viterbi[time_step][tag] = [max, argmax]
             else:
-                viterbi[time_step][tag] = [0, 'Oops']
+                viterbi[time_step][tag] = [0, 'Oops'] # hopefully this never happens
         time_step += 1
     return viterbi
 
+# termination step of the Viterbi algorithm
+# takes a sequence of words and an hmm model and calculates probabilities of each possible tag
+# ending the given sequence
+# returns a dictionary of { time_step_final : { tag : [max, argmax] } } and the final [max, argmax] pair
 def termination(viterbi, sequence, hmm_model):
-    
     transition_probs = hmm_model[0]
     emission_probs = hmm_model[1]
     tag_list = hmm_model[2]
